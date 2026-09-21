@@ -38,6 +38,9 @@ public class MainActivity extends Activity {
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
 
         // Simula Chrome en un computador.
         settings.setUserAgentString(DESKTOP_USER_AGENT);
@@ -47,7 +50,15 @@ public class MainActivity extends Activity {
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-        webView.setWebViewClient(new WebViewClient());
+      webView.setWebViewClient(new WebViewClient() {
+          @Override
+          public void onPageFinished(WebView v, String url) {
+              v.evaluateJavascript(
+                  "var m=document.querySelector('meta[name=viewport]');" +
+                  "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}" +
+                  "m.setAttribute('content','width=1280');", null);
+          }
+      }); 
 
         webView.setWebChromeClient(new WebChromeClient() {
 
