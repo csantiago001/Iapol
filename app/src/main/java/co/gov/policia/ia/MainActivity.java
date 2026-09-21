@@ -33,6 +33,8 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         setContentView(webView);
+        webView.setFitsSystemWindows(true);
+        getWindow().setStatusBarColor(android.graphics.Color.parseColor("#1B2F6B"));
 
         WebSettings settings = webView.getSettings();
 
@@ -53,7 +55,7 @@ public class MainActivity extends Activity {
 
         // Escala inicial para que quepan ~1280 px de ancho.
         // Si se ve muy chico prueba 40 o 50.
-        webView.setInitialScale(30);
+        webView.setInitialScale(40);
 
         // Cookies necesarias para iniciar sesión.
         CookieManager cookieManager = CookieManager.getInstance();
