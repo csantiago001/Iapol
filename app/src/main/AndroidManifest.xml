@@ -9,7 +9,10 @@
         android:allowBackup="true"
         android:label="IA Policía"
         android:usesCleartextTraffic="false"
+        android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher"
         android:theme="@style/AppTheme">
+        
 
         <activity
             android:name=".MainActivity"
