@@ -3,6 +3,7 @@ package co.gov.policia.ia;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.webkit.CookieManager;
 import android.webkit.PermissionRequest;
@@ -23,6 +24,9 @@ public class MainActivity extends Activity {
             "AppleWebKit/537.36 (KHTML, like Gecko) " +
             "Chrome/131.0.0.0 Safari/537.36";
 
+    // Ancho virtual de escritorio (px)
+    private static final int DESKTOP_WIDTH = 1280;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +42,8 @@ public class MainActivity extends Activity {
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
+
         settings.setSupportZoom(true);
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
@@ -45,20 +51,34 @@ public class MainActivity extends Activity {
         // Simula Chrome en un computador.
         settings.setUserAgentString(DESKTOP_USER_AGENT);
 
+        // Escala inicial para que quepan ~1280 px de ancho.
+        // Si se ve muy chico prueba 40 o 50.
+        webView.setInitialScale(30);
+
         // Cookies necesarias para iniciar sesión.
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-      webView.setWebViewClient(new WebViewClient() {
-          @Override
-          public void onPageFinished(WebView v, String url) {
-              v.evaluateJavascript(
-                  "var m=document.querySelector('meta[name=viewport]');" +
-                  "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}" +
-                  "m.setAttribute('content','width=1280');", null);
-          }
-      }); 
+        webView.setWebViewClient(new WebViewClient() {
+
+            @Override
+            public void onPageStarted(WebView v, String url, Bitmap favicon) {
+                v.evaluateJavascript(
+                    "try{" +
+                    "Object.defineProperty(screen,'width',{get:function(){return " + DESKTOP_WIDTH + ";}});" +
+                    "Object.defineProperty(screen,'height',{get:function(){return 800;}});" +
+                    "}catch(e){}", null);
+            }
+
+            @Override
+            public void onPageFinished(WebView v, String url) {
+                v.evaluateJavascript(
+                    "var m=document.querySelector('meta[name=viewport]');" +
+                    "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}" +
+                    "m.setAttribute('content','width=" + DESKTOP_WIDTH + ", user-scalable=yes');", null);
+            }
+        });
 
         webView.setWebChromeClient(new WebChromeClient() {
 
