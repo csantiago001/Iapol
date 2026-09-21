@@ -86,14 +86,19 @@ public class MainActivity extends Activity {
                     "Object.defineProperty(screen,'width',{get:function(){return " + DESKTOP_WIDTH + ";}});" +
                     "Object.defineProperty(screen,'height',{get:function(){return 800;}});" +
                     "}catch(e){}", null);
+                forceDesktop(v);
             }
 
             @Override
             public void onPageFinished(WebView v, String url) {
-                v.evaluateJavascript(
-                    "var m=document.querySelector('meta[name=viewport]');" +
-                    "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}" +
-                    "m.setAttribute('content','width=" + DESKTOP_WIDTH + ", user-scalable=yes');", null);
+                forceDesktop(v);
+            }
+
+            @Override
+            public void doUpdateVisitedHistory(WebView v, String url, boolean isReload) {
+                // Se dispara también cuando la SPA cambia de sección sin recargar.
+                forceDesktop(v);
+                v.postDelayed(() -> forceDesktop(v), 300);
             }
         });
 
@@ -142,6 +147,26 @@ public class MainActivity extends Activity {
         }
 
         webView.loadUrl(URL);
+    }
+
+    // Vuelve a forzar el viewport de escritorio cada vez que la página lo cambie.
+    private void forceDesktop(WebView v) {
+        String js =
+            "(function(){" +
+            "function fix(){" +
+            "var m=document.querySelector('meta[name=viewport]');" +
+            "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}" +
+            "if(m.getAttribute('content')!=='width=" + DESKTOP_WIDTH + ", user-scalable=yes'){" +
+            "m.setAttribute('content','width=" + DESKTOP_WIDTH + ", user-scalable=yes');}" +
+            "}" +
+            "fix();" +
+            "if(!window.__deskObs){" +
+            "window.__deskObs=new MutationObserver(fix);" +
+            "window.__deskObs.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['content']});" +
+            "setInterval(fix,500);" +
+            "}" +
+            "})();";
+        v.evaluateJavascript(js, null);
     }
 
     @Override
