@@ -4,13 +4,16 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
 public class MainActivity extends Activity {
 
@@ -32,9 +35,22 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         webView = new WebView(this);
-        setContentView(webView);
-        webView.setFitsSystemWindows(true);
-        getWindow().setStatusBarColor(android.graphics.Color.parseColor("#1B2F6B"));
+
+        // Contenedor que respeta la barra de estado y la de navegación.
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(Color.parseColor("#1B2F6B"));
+        root.addView(webView, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            v.setPadding(
+                    insets.getSystemWindowInsetLeft(),
+                    insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(),
+                    insets.getSystemWindowInsetBottom());
+            return insets.consumeSystemWindowInsets();
+        });
+        setContentView(root);
 
         WebSettings settings = webView.getSettings();
 
@@ -53,9 +69,8 @@ public class MainActivity extends Activity {
         // Simula Chrome en un computador.
         settings.setUserAgentString(DESKTOP_USER_AGENT);
 
-        // Escala inicial para que quepan ~1280 px de ancho.
-        // Si se ve muy chico prueba 40 o 50.
-        webView.setInitialScale(40);
+        // Escala inicial. Si se corta a los lados prueba 40; si se ve chico, 50.
+        webView.setInitialScale(45);
 
         // Cookies necesarias para iniciar sesión.
         CookieManager cookieManager = CookieManager.getInstance();
